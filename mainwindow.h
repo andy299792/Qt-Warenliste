@@ -22,6 +22,10 @@ private slots:
 
     void on_tableWidget_cellClicked(int row, int column);
 
+    void on_button_save_clicked();
+
+    void on_button_open_clicked();
+
 private:
     Ui::mainWindow *ui;
 

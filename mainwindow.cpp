@@ -3,6 +3,8 @@
 //#include <QtCore>
 //#include <QtGui>
 #include <QMessageBox>
+#include <QFile>
+#include <QTextStream>
 
 mainWindow::mainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -101,4 +103,43 @@ void mainWindow::deleteItems()   // mehrere Zeilen löschen
     }
 }
 
+void mainWindow::on_button_save_clicked()
+{
+    // Liste in der Datei speichern
+    QFile file("liste.txt");
+    // Wenn öffnen der Datei erfolgreich
+    // Nur schreibzugriff -> WriteOnly
+    // Inhalt der Datei überschreiben -> Truncate
+    if(file.open(QFile::WriteOnly | QFile::Truncate | QFile::Text))
+    {
+        // Schreibe liste in Datei
+        // öffne TextStream
+        QTextStream out(&file);
+        for(int i=0; i < this->ui->tableWidget. ; ++i)      // an table anpassen
+        {
+            out << this->ui->tableWidget->item(i, 0);
+        }
+        file.flush();
+        // Datei schließen  !! Nicht Vergessen !!
+        file.close();
+    }
+}
 
+void mainWindow::on_button_open_clicked()
+{
+    // Liste aus der Datei laden
+    QFile file("liste.txt");
+    // Wenn öffnen der Datei erfolgreich
+    if(file.open(QFile::ReadOnly | QFile::Text))
+    {
+        this->ui->tableWidget->clear();
+        // Lese aus Datei in Tabelle
+        QTextStream in(&file);
+        while (!in.atEnd())
+            {
+                this->ui->tableWidget.add (in.readLine().trimmed());    // an table anpassen
+            }
+        // File schließen
+        file.close();
+    }
+}
