@@ -24,7 +24,7 @@ void mainWindow::on_add_clicked()   // Add Button geklickt
     this->addItem();
 }
 
-void mainWindow::on_pushButton_clicked()
+void mainWindow::on_pushButton_clicked()    // Delete Button geklickt
 {
     //if(this->ui->tableWidget->rowCount() == 0){return;}               // verhindert Absturz bei leerer Liste
     if(this->ui->tableWidget->selectedItems().count() == 0){return;}    // verhindert Absturz ohne Auswahl
@@ -42,6 +42,26 @@ void mainWindow::on_pushButton_clicked()
         //this->deleteItem();   // nur für einzelne Zeilen
         this->deleteItems();    // für eine oder mehrere Zeilen
     }
+}
+
+void mainWindow::on_button_open_clicked()
+{
+    this->tableOpen();
+}
+
+void mainWindow::on_button_save_clicked()
+{
+   this->tableSave();
+}
+
+void mainWindow::on_actionOpen_triggered()
+{
+    this->tableOpen();
+}
+
+void mainWindow::on_actionSave_triggered()
+{
+    this->tableSave();
 }
 
 void mainWindow::on_tableWidget_cellClicked(int row, int column)
@@ -73,7 +93,7 @@ void mainWindow::addItem()
     this->ui->tableWidget->item(0,0)->setFlags(Qt::ItemIsEditable);
     item_bez->setText(bez);
     this->ui->tableWidget->setItem(0, 1, item_bez);
-    item_preis->setText(this->ui->preis->text().trimmed());
+    item_preis->setText(preis);
     this->ui->tableWidget->setItem(0, 2, item_preis);
 
     this->eingabeclear();
@@ -103,7 +123,7 @@ void mainWindow::deleteItems()   // mehrere Zeilen löschen
     }
 }
 
-void mainWindow::on_button_save_clicked()
+void mainWindow::tableSave()
 {
     // Liste in der Datei speichern
     QFile file("liste.txt");
@@ -115,31 +135,75 @@ void mainWindow::on_button_save_clicked()
         // Schreibe liste in Datei
         // öffne TextStream
         QTextStream out(&file);
-        for(int i=0; i < this->ui->tableWidget. ; ++i)      // an table anpassen
-        {
-            out << this->ui->tableWidget->item(i, 0);
-        }
+        // Header horizontal einlesen
+        out << this->ui->tableWidget->horizontalHeaderItem(0)->text().trimmed() + "\n";
+        out << this->ui->tableWidget->horizontalHeaderItem(1)->text().trimmed() + "\n";
+        out << this->ui->tableWidget->horizontalHeaderItem(2)->text().trimmed();
+        // Tabelle einlesen
+        for(int i=0; i < this->ui->tableWidget->rowCount(); ++i)      // an table anpassen
+            {
+                for(int j=0; j < this->ui->tableWidget->columnCount(); ++j)
+                    {
+                        out <<  "\n" + this->ui->tableWidget->item(i, j)->text().trimmed();
+                    }
+            }
         file.flush();
         // Datei schließen  !! Nicht Vergessen !!
         file.close();
+        this->ui->statusbar->showMessage(tr("saved"), 3000);
     }
 }
 
-void mainWindow::on_button_open_clicked()
+void mainWindow::tableOpen()
 {
     // Liste aus der Datei laden
     QFile file("liste.txt");
     // Wenn öffnen der Datei erfolgreich
     if(file.open(QFile::ReadOnly | QFile::Text))
     {
-        this->ui->tableWidget->clear();
+        this->ui->tableWidget->horizontalHeaderItem(0)->text();
+        this->ui->tableWidget->clear(); // Tabelle leeren
+
+        while(this->ui->tableWidget->rowCount())    // leere Zeilen löschen
+            {this->ui->tableWidget->removeRow(0);}
+
         // Lese aus Datei in Tabelle
         QTextStream in(&file);
+        this->ui->tableWidget->setSortingEnabled(false);    // sortieren ausschalten
+        // Header horizontal schreiben
+        for(int i=0; i < 3; ++i)
+        {
+            QTableWidgetItem *item_0 = new QTableWidgetItem(" ");
+            if(!in.atEnd()){item_0->setText(in.readLine().trimmed());}
+            this->ui->tableWidget->setHorizontalHeaderItem(i, item_0);
+        }
+
         while (!in.atEnd())
             {
-                this->ui->tableWidget.add (in.readLine().trimmed());    // an table anpassen
+                    //this->ui->tableWidget.add (in.readLine().trimmed());    // für ListWidget
+                // in Tabelle schreiben
+                auto id = in.readLine().trimmed();
+                auto bez = in.readLine().trimmed();
+                auto preis = in.readLine().trimmed();
+
+                QTableWidgetItem *item_id = new QTableWidgetItem(" ");
+                QTableWidgetItem *item_bez = new QTableWidgetItem(" ");
+                QTableWidgetItem *item_preis = new QTableWidgetItem(" ");
+
+
+                this->ui->tableWidget->insertRow(0);                // Zeile einfügen in Zeile 0
+                item_id->setText(id);                               // item mit Text füllen
+                this->ui->tableWidget->setItem(0, 0, item_id);      // item an Tabelle übergeben (zeile, spalte)
+                this->ui->tableWidget->item(0,0)->setFlags(Qt::ItemIsEditable);
+                item_bez->setText(bez);
+                this->ui->tableWidget->setItem(0, 1, item_bez);
+                item_preis->setText(preis);
+                this->ui->tableWidget->setItem(0, 2, item_preis);
             }
+        this->ui->tableWidget->setSortingEnabled(true); // Sortieren wieder einschalten
         // File schließen
         file.close();
+        this->ui->statusbar->showMessage(tr("loaded"), 3000);
     }
 }
+

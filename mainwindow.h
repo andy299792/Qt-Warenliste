@@ -26,6 +26,10 @@ private slots:
 
     void on_button_open_clicked();
 
+    void on_actionOpen_triggered();
+
+    void on_actionSave_triggered();
+
 private:
     Ui::mainWindow *ui;
 
@@ -35,6 +39,8 @@ private:
     void addItem();
     void deleteItem();
     void deleteItems();
+    void tableSave();
+    void tableOpen();
 
 };
 #endif // MAINWINDOW_H
